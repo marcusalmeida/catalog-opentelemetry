@@ -33,6 +33,7 @@ build/
 .vscode/
 
 .java-version
+.env
 .venv
 __pycache__
 requirements.txt
