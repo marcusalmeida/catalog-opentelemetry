@@ -1,1 +1,2 @@
-
+app:
+  pricing.endpoint: http://pricing:5000/price
