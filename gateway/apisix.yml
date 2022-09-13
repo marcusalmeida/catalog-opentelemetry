@@ -1,0 +1,13 @@
+routes:
+  - uri: /products*
+    upstream:
+      type: roundrobin
+      nodes:
+        "catalog:8080": 1
+global_rules:
+  - id: 1
+    plugins:
+      opentelemetry:
+        sampler:
+          name: always_on
+#END
