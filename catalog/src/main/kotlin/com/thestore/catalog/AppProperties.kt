@@ -5,5 +5,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "app.pricing")
-data class AppProperties(val endpoint: String)
+data class PricingAppProperties(val endpoint: String)
 
+@ConstructorBinding
+@ConfigurationProperties(prefix = "app.rating")
+data class RatingAppProperties(val endpoint: String)

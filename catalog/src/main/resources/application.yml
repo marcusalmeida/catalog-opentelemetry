@@ -1,2 +1,3 @@
 app:
   pricing.endpoint: http://pricing:5000/price
+  rating.endpoint: http://rating:1323/product

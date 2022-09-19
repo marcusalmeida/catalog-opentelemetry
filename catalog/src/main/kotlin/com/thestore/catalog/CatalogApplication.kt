@@ -17,14 +17,14 @@ import org.springframework.web.reactive.function.server.*
 
 interface ProductRepository :  CoroutineSortingRepository<Product, Long>
 
-class ProductHandler(private val repository: ProductRepository, private val client: WebClient) {
+class ProductHandler(private val repository: ProductRepository, private val pricingClient: WebClient, private val ratingClient: WebClient) {
 
   private val logger = LoggerFactory.getLogger(ProductHandler::class.java)
 
   suspend fun products(req: ServerRequest): ServerResponse {
     printHeader(req)
     val products = repository.findAll().map {
-      val price = client.get().uri("/${it.id}").retrieve().bodyToMono<Price>().awaitSingle()
+      val price = pricingClient.get().uri("/${it.id}").retrieve().bodyToMono<Price>().awaitSingle()
       it .withPrice(price)
     }
     return ServerResponse.ok().bodyAndAwait(products)
@@ -37,8 +37,9 @@ class ProductHandler(private val repository: ProductRepository, private val clie
     val result = fetch(id)
     return result.fold(
         {
-          val price = client.get().uri("/$id").retrieve().bodyToMono<Price>().awaitSingle()
-          ServerResponse.ok().bodyValueAndAwait(it.withPrice(price))
+          val price = pricingClient.get().uri("/$id").retrieve().bodyToMono<Price>().awaitSingle()
+          val rating  = ratingClient.get().uri("/$id").retrieve().bodyToMono<Rating>().awaitSingle()
+          ServerResponse.ok().bodyValueAndAwait(it.withPriceAndRating(price, rating))
         },
         { ServerResponse.notFound().buildAndAwait() }
     )
@@ -51,7 +52,7 @@ class ProductHandler(private val repository: ProductRepository, private val clie
     return if (product == null) Result.failure(IllegalArgumentException("Product $id not found"))
     else Result.success(product)
   }
- 
+
   private fun printHeader(req: ServerRequest) {
     req.headers().firstHeader("traceparent")?.let {
       logger.info("traceparent: $it")
@@ -59,14 +60,17 @@ class ProductHandler(private val repository: ProductRepository, private val clie
   }
 
   private fun Product.withPrice(price: Price) = PricedProduct(id, name, description, price.price)
+  private fun Product.withPriceAndRating(price: Price, rating: Rating) = CompleteProduct(id, name, description, price.price, rating.value)
 }
 
 
 val beans = beans {
   bean {
-    var properties = ref<AppProperties>()
-    var client = WebClient.builder().baseUrl(properties.endpoint).build()
-    var handlers = ProductHandler(ref(), client)
+    var pricingProperties = ref<PricingAppProperties>()
+    var pricingClient = WebClient.builder().baseUrl(pricingProperties.endpoint).build()
+    var ratingProperties = ref<RatingAppProperties>()
+    var ratingClient = WebClient.builder().baseUrl(ratingProperties.endpoint).build()
+    var handlers = ProductHandler(ref(), pricingClient, ratingClient)
     coRouter {
       GET("/products")(handlers::products)
       GET("/products/{id}")(handlers::product)
@@ -75,7 +79,7 @@ val beans = beans {
 }
 
 @SpringBootApplication
-@EnableConfigurationProperties(value = [AppProperties::class])
+@EnableConfigurationProperties(value = [PricingAppProperties::class, RatingAppProperties::class])
 class CatalogApplication
 
 fun main(args: Array<String>) {
