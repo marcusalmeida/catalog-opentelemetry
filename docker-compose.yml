@@ -31,4 +31,10 @@ services:
       OTEL_RESOURCE_ATTRIBUTES: service.name=pricing
       OTEL_METRICS_EXPORTER: none
       OTEL_LOGS_EXPORTER: none
-
+  rating:
+    build: ./rating
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_RESOURCE_ATTRIBUTES: service.name=rating
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
