@@ -24,7 +24,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var tracer = otel.Tracer("echo-server")
+var tracer = otel.Tracer("rating-service")
 
 var errRatingNotFound = errors.New("There is no rating for this product")
 
