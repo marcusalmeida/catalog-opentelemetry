@@ -7,7 +7,11 @@
 
 ### catalog:
   http://localhost:9080/products
-  http://localshot:9080/products/:id   [1,2,3]
+  
+  
+  http://localhost:9080/products/:id   
+  
+  ids disponiveis: [1,2,3]
 
 ### Jaeger:
   http://localhost:16686
